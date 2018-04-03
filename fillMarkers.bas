@@ -7,6 +7,7 @@ Option Explicit
 Dim currentExercise As String
 Dim currentExerciseRow As Integer
 Dim currentExerciseColumn As Integer
+Dim currentMarkerRangeName As String
 
 Dim currentCompetency As String
 Dim targetRow As Integer
@@ -55,8 +56,8 @@ Sub fillMarkers()
         Call SetStartPoint
         
         'Collect Behavioral Markers
-        Call collectMarkers
-        
+        'Call collectMarkers
+        Call getMarkerRange
         
         'Go to test Sheet
         Worksheets("test").Activate
@@ -67,7 +68,6 @@ Sub fillMarkers()
         
         'Add those mutherfucking markers 6 freaking times
         Call createMarkerDropdowns
-        
     
         
         Next
@@ -154,11 +154,19 @@ Sub createMarkerDropdowns()
      With ActiveCell.Validation
                 .Delete
                 .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, _
-                    Operator:=xlBetween, Formula1:=Join(markers, ",")
+                    Operator:=xlBetween, Formula1:=currentMarkerRangeName
      End With
      ActiveCell.Offset(1, 0).Select
     Next
     ReDim markers(1 To 1) As String
-    
+    currentMarkerRangeName = ""
 
+End Sub
+
+
+
+Sub getMarkerRange()
+    Range(ActiveCell, ActiveCell.End(xlDown)).name = "MarkerRange"
+    currentMarkerRangeName = Range(ActiveCell, ActiveCell.End(xlDown)).name
+    
 End Sub

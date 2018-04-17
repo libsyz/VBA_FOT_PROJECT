@@ -6,12 +6,15 @@ Option Explicit
     Private RolePlayerInstructionsDoc As Word.Application
     Dim ExerciseId As String
     Dim SnippetIdArray() As String
-    
+    Dim ExceptionCrossCulturalAwareness As Boolean
 
 Sub CreateFirstLineManagementRolePlayWord()
     
     Dim IssueMatrix() As Variant
     Dim IssueRange As Range
+    
+    
+    
     Dim isX As Boolean
     Dim i As Integer
     Dim Counter As Integer
@@ -28,7 +31,6 @@ Sub CreateFirstLineManagementRolePlayWord()
     Set IssueRange = Range("A6:C13")
     IssueMatrix = IssueRange
     
-    
     Counter = 0
     
     For i = LBound(IssueMatrix, 1) To UBound(IssueMatrix, 1)
@@ -40,8 +42,6 @@ Sub CreateFirstLineManagementRolePlayWord()
         
     
     Next i
-    
-
         
     For Each SingleCell In Range("A6:A13")
         
@@ -50,14 +50,15 @@ Sub CreateFirstLineManagementRolePlayWord()
         isX = IssueIsChecked()
         If isX = True Then
             Call FetchCompetencyId(CompetencyName)
+            Call CheckForException("Cross Cultural Awareness")
             Call AddSnippetId
         End If
         
     Next SingleCell
     
     Call CreateInstructions
+    Call AddExceptions
     Call SaveInstructions
-   
     
 End Sub
     
@@ -145,18 +146,66 @@ Sub CreateInstructions()
         
     Next SnippetId
     
+    
+    
   '### All this can be refactored with another loop and using a hash/dictionary for snippets
   '### How to Delete Last Array Element?
   '### Think about how to delete First Or Last Line
-  
- 
+
+End Sub
+
+Sub AddExceptions()
  ' ###Exception handling
- ' If the array contains Cross Cultural Awareness, a number of things need to happen
+ ' If the array contains Cross Cultural Awareness, a number of th   ings need to happen
+ 
+ ' Add Cross Cultural Awareness Snippets at their corresponding breakpoints
+  ParticipantInstructionsDoc.Activate
+ 
+ 
  ' Substitute all "Youssef Ahmadi" for "Ben Thelion"
- ' Add Cross Cultural Awareness Snippets
+   With ParticipantInstructionsDoc.Selection.Find
+    .ClearFormatting
+    .Text = "Yousef Ahmadi"
+    .Replacement.ClearFormatting
+    .Replacement.Text = "Ben Thelion"
+    .Execute Replace:=wdReplaceAll, Forward:=True, _
+        Wrap:=wdFindContinue
+End With
+
+   With RolePlayerInstructionsDoc.Selection.Find
+    .ClearFormatting
+    .Text = "Yousef Ahmadi"
+    .Replacement.ClearFormatting
+    .Replacement.Text = "Ben Thelion"
+    .Execute Replace:=wdReplaceAll, Forward:=True, _
+        Wrap:=wdFindContinue
+End With
+
+' Substitute all "Youssef" for "Ben"
+
+   With ParticipantInstructionsDoc.Selection.Find
+    .ClearFormatting
+    .Text = "Yousef"
+    .Replacement.ClearFormatting
+    .Replacement.Text = "Ben"
+    .Execute Replace:=wdReplaceAll, Forward:=True, _
+        Wrap:=wdFindContinue
+End With
  
- 
- ' Then, save the document and
+    
+End Sub
+
+
+
+Sub CheckForException(CompetencyName)
+Dim StringToMatch As String
+
+StringToMatch = Worksheets("Marker Library Simulations").Columns(2).Find(CompetencyId).Offset(0, -1).Value
+
+If CompetencyName = StringToMatch Then
+ExceptionCrossCulturalAwareness = True
+End If
+
 End Sub
 
 
@@ -174,11 +223,24 @@ End Sub
 
 Sub SaveInstructions()
 
-    WordDoc.Documents(WordDoc.Documents.Count).SaveAs2 _
-        Filename:=FileNombre, _
+Dim FileNombre As String
+
+FileNombre = Application.ActiveWorkbook.Path & "\" & "1st Line Manager Conversation"
+
+    ParticipantInstructionsDoc.Documents(ParticipantInstructionsDoc.Documents.Count).SaveAs2 _
+        Filename:=FileNombre & "_Participant_Instruction", _
         FileFormat:=wdFormatDocumentDefault, _
         ReadOnlyRecommended:=False
-    Set InstructionsDocument = Nothing
+    Set ParticipantInstructionsDoc = Nothing
     'Filename = 1stLine Management Conversation_Participant Instruction.Docx
     'Filename = 1stLine Management Conversation_RolePLayer Instruction.Docx
+    RolePlayerInstructionsDoc.Documents(RolePlayerInstructionsDoc.Documents.Count).SaveAs2 _
+        Filename:=FileNombre & "_Role_Player_Instruction", _
+        FileFormat:=wdFormatDocumentDefault, _
+        ReadOnlyRecommended:=False
+    Set RolePlayerInstructionsDoc = Nothing
+
+
 End Sub
+
+
